@@ -19,15 +19,7 @@ export function Home() {
         <div className="p-6 flex-1 overflow-y-auto flex flex-col gap-8">
           {/* Filters */}
           <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-2">
-               <label className="font-[family:var(--font-serif)] text-sm text-foreground font-medium">Port of Departure</label>
-               <select className="w-full p-2 bg-input-background border border-border rounded-sm font-[family:var(--font-body)] text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
-                 <option>All Ports</option>
-                 <option>Philadelphia</option>
-                 <option>Wilmington</option>
-                 <option>New Castle</option>
-               </select>
-            </div>
+
             <div className="flex flex-col gap-2">
                <label className="font-[family:var(--font-serif)] text-sm text-foreground font-medium">Port of Arrival</label>
                <select className="w-full p-2 bg-input-background border border-border rounded-sm font-[family:var(--font-body)] text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
@@ -39,13 +31,14 @@ export function Home() {
                </select>
             </div>
             <div className="flex flex-col gap-2">
-               <label className="font-[family:var(--font-serif)] text-sm text-foreground font-medium">Vessel Flag</label>
+               <label className="font-[family:var(--font-serif)] text-sm text-foreground font-medium">Rig</label>
                <select className="w-full p-2 bg-input-background border border-border rounded-sm font-[family:var(--font-body)] text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
-                 <option>All Flags</option>
-                 <option>United States</option>
-                 <option>Great Britain</option>
-                 <option>France</option>
-                 <option>Spain</option>
+                 <option>All Rigs</option>
+                 <option>Ship</option>
+                 <option>Brig</option>
+                 <option>Schooner</option>
+                 <option>Sloop</option>
+                 <option>Privateer</option>
                </select>
             </div>
           </div>

@@ -38,9 +38,7 @@ export function Layout() {
               className="w-full pl-10 pr-4 py-2 bg-input-background border border-border font-[family:var(--font-body)] text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all rounded-sm placeholder:text-muted-foreground/70 text-foreground"
             />
           </div>
-          <Link to="/search" className="font-[family:var(--font-body)] text-xs text-primary hover:text-secondary tracking-widest uppercase font-medium bg-secondary/10 px-3 py-1 rounded-sm border border-secondary/20 hover:bg-secondary/20 transition-colors">
-            Advanced Search
-          </Link>
+          <Link to="/search" className="font-[family:var(--font-body)] text-xs text-primary hover:text-secondary tracking-widest uppercase font-medium bg-secondary/10 px-3 py-1 rounded-sm border border-secondary/20 hover:bg-secondary/20 transition-colors">Advanced Search</Link>
         </div>
       </header>
       

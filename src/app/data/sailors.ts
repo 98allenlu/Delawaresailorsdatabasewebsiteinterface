@@ -1,6 +1,9 @@
 export interface Voyage {
   id: string;
   vessel: string;
+  rig: string;
+  portBegan: string;
+  portEnded: string;
   date: string;
   route: string;
 }
@@ -32,12 +35,12 @@ export const sailors: Sailor[] = [
       markings: "—",
     },
     voyages: [
-      { id: "v1", vessel: "Ship Jane", date: "12/23/1815", route: "—" },
-      { id: "v2", vessel: "Ship Jane", date: "7/19/1816",  route: "—" },
-      { id: "v3", vessel: "Ship Jane", date: "12/19/1816", route: "—" },
-      { id: "v4", vessel: "Ship Jane", date: "9/23/1817",  route: "—" },
-      { id: "v5", vessel: "Ship Jane", date: "1/29/1818",  route: "—" },
-      { id: "v6", vessel: "Ship Jane", date: "7/27/1818",  route: "—" },
+      { id: "v1", vessel: "Ship Jane", rig: "Ship", portBegan: "Philadelphia", portEnded: "Liverpool", date: "12/23/1815", route: "Philadelphia to Liverpool" },
+      { id: "v2", vessel: "Ship Jane", rig: "Ship", portBegan: "Liverpool", portEnded: "Philadelphia", date: "7/19/1816",  route: "Liverpool to Philadelphia" },
+      { id: "v3", vessel: "Ship Jane", rig: "Ship", portBegan: "Philadelphia", portEnded: "London", date: "12/19/1816", route: "Philadelphia to London" },
+      { id: "v4", vessel: "Ship Jane", rig: "Ship", portBegan: "London", portEnded: "Philadelphia", date: "9/23/1817",  route: "London to Philadelphia" },
+      { id: "v5", vessel: "Ship Jane", rig: "Ship", portBegan: "Philadelphia", portEnded: "Kingston", date: "1/29/1818",  route: "Philadelphia to Kingston" },
+      { id: "v6", vessel: "Ship Jane", rig: "Ship", portBegan: "Kingston", portEnded: "Philadelphia", date: "7/27/1818",  route: "Kingston to Philadelphia" },
     ],
   },
   {
@@ -52,8 +55,8 @@ export const sailors: Sailor[] = [
       markings: "Scar on left hand",
     },
     voyages: [
-      { id: "v1", vessel: "The Fair American", date: "1780", route: "Philadelphia to Caribbean" },
-      { id: "v2", vessel: "Royal Louis",        date: "1781", route: "Philadelphia Coast Guard" },
+      { id: "v1", vessel: "The Fair American", rig: "Privateer", portBegan: "Philadelphia", portEnded: "Caribbean", date: "1780", route: "Philadelphia to Caribbean" },
+      { id: "v2", vessel: "Royal Louis",        rig: "Ship", portBegan: "Philadelphia", portEnded: "Philadelphia", date: "1781", route: "Philadelphia Coast Guard" },
     ],
   },
   {
@@ -68,9 +71,9 @@ export const sailors: Sailor[] = [
       markings: "Tattoo on right forearm",
     },
     voyages: [
-      { id: "v1", vessel: "Betsey",      date: "3/14/1801", route: "Wilmington to London" },
-      { id: "v2", vessel: "Betsey",      date: "9/2/1801",  route: "London to Wilmington" },
-      { id: "v3", vessel: "Providence",  date: "5/17/1803", route: "Wilmington to Barbados" },
+      { id: "v1", vessel: "Betsey", rig: "Brig", portBegan: "Wilmington", portEnded: "London", date: "3/14/1801", route: "Wilmington to London" },
+      { id: "v2", vessel: "Betsey", rig: "Brig", portBegan: "London", portEnded: "Wilmington", date: "9/2/1801",  route: "London to Wilmington" },
+      { id: "v3", vessel: "Providence", rig: "Schooner", portBegan: "Wilmington", portEnded: "Barbados", date: "5/17/1803", route: "Wilmington to Barbados" },
     ],
   },
   {
@@ -85,8 +88,8 @@ export const sailors: Sailor[] = [
       markings: "Missing tip of left index finger",
     },
     voyages: [
-      { id: "v1", vessel: "Sally",  date: "6/1/1808",  route: "New Castle to Bordeaux" },
-      { id: "v2", vessel: "Sally",  date: "11/9/1808", route: "Bordeaux to New Castle" },
+      { id: "v1", vessel: "Sally", rig: "Sloop", portBegan: "New Castle", portEnded: "Bordeaux", date: "6/1/1808",  route: "New Castle to Bordeaux" },
+      { id: "v2", vessel: "Sally", rig: "Sloop", portBegan: "Bordeaux", portEnded: "New Castle", date: "11/9/1808", route: "Bordeaux to New Castle" },
     ],
   },
 ];

@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, ArrowRight, Filter, X, Anchor, User } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router';
+import { Search, ArrowRight, Filter, X, Anchor, User, Calendar, MapPin, ChevronLeft } from 'lucide-react';
+import { Link, useSearchParams, useNavigate } from 'react-router';
 import { sailors, type Sailor } from '../data/sailors';
 
 export function AdvancedSearch() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Local state for form inputs
@@ -41,19 +42,21 @@ export function AdvancedSearch() {
     const portBeganParam = searchParams.get('portBegan');
     const portEndedParam = searchParams.get('portEnded');
 
-    if (!nameParam && !yobParam && !complexionParam && !vesselParam && !rigParam && !portBeganParam && !portEndedParam) {
+    const hasParams = nameParam || yobParam || complexionParam || vesselParam || rigParam || portBeganParam || portEndedParam;
+    
+    if (!hasParams) {
       return null;
     }
 
     return sailors.filter(s => {
       if (nameParam && !s.name.toLowerCase().includes(nameParam.toLowerCase())) return false;
       if (yobParam && s.yearOfBirth !== yobParam) return false;
-      if (complexionParam && s.description.complexion.toLowerCase() !== complexionParam.toLowerCase()) return false;
+      if (complexionParam && complexionParam !== 'Any' && s.description.complexion.toLowerCase() !== complexionParam.toLowerCase()) return false;
 
       if (vesselParam || rigParam || portBeganParam || portEndedParam) {
         const hasMatchingVoyage = s.voyages.some(v => {
           if (vesselParam && !v.vessel.toLowerCase().includes(vesselParam.toLowerCase())) return false;
-          if (rigParam && v.rig.toLowerCase() !== rigParam.toLowerCase()) return false;
+          if (rigParam && rigParam !== 'Any Rig' && v.rig.toLowerCase() !== rigParam.toLowerCase()) return false;
           if (portBeganParam && !v.portBegan.toLowerCase().includes(portBeganParam.toLowerCase())) return false;
           if (portEndedParam && !v.portEnded.toLowerCase().includes(portEndedParam.toLowerCase())) return false;
           return true;
@@ -67,16 +70,16 @@ export function AdvancedSearch() {
 
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const params: Record<string, string> = {};
+    const params = new URLSearchParams();
     Object.entries(form).forEach(([key, value]) => {
-      if (value) params[key] = value;
+      if (value && value !== 'Any' && value !== 'Any Rig') params.set(key, value);
     });
     setSearchParams(params);
     setIsSidebarOpen(false);
   };
 
   const clearFilters = () => {
-    setForm({
+    const emptyForm = {
       name: '',
       yob: '',
       complexion: '',
@@ -84,7 +87,8 @@ export function AdvancedSearch() {
       rig: '',
       portBegan: '',
       portEnded: '',
-    });
+    };
+    setForm(emptyForm);
     setSearchParams({});
   };
 
@@ -97,65 +101,71 @@ export function AdvancedSearch() {
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-[60] lg:hidden"
+          className="fixed inset-0 bg-brand-navy/60 backdrop-blur-sm z-[60] lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar Filters */}
       <aside className={`
-        fixed inset-y-0 left-0 z-[70] w-80 bg-card border-r border-border transition-transform duration-300 lg:relative lg:translate-x-0
+        fixed inset-y-0 left-0 z-[70] w-80 bg-card border-r-2 border-primary/20 transition-transform duration-300 lg:relative lg:translate-x-0 shadow-2xl lg:shadow-none
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         flex flex-col h-full
       `}>
-        <div className="p-6 border-b border-border flex items-center justify-between bg-secondary/5">
-          <h2 className="font-[family:var(--font-serif)] text-xl text-primary flex items-center gap-2" style={{ fontWeight: 700 }}>
-            <Filter className="w-5 h-5" /> Filter Records
-          </h2>
-          <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-muted-foreground hover:text-foreground">
+        <div className="p-6 border-b border-border flex items-center justify-between bg-secondary/10">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">Registry</span>
+            <h2 className="font-[family:var(--font-display)] text-xl text-primary flex items-center gap-2 font-bold">
+              <Filter className="w-5 h-5 text-secondary" /> Filter Records
+            </h2>
+          </div>
+          <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-muted-foreground hover:text-primary transition-colors">
             <X className="w-6 h-6" />
           </button>
         </div>
 
         <form className="flex-1 overflow-y-auto p-6 flex flex-col gap-8 custom-scrollbar" onSubmit={handleSearch}>
           {/* Section: Mariner */}
-          <section className="flex flex-col gap-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-border/50">
-              <User className="w-4 h-4 text-secondary" />
-              <h3 className="font-[family:var(--font-body)] text-xs uppercase tracking-widest text-muted-foreground font-bold">Mariner Information</h3>
+          <section className="flex flex-col gap-5">
+            <div className="flex items-center gap-2 pb-2 border-b border-secondary/30">
+              <User className="w-4 h-4 text-primary" />
+              <h3 className="font-[family:var(--font-body)] text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold">Mariner Personal Details</h3>
             </div>
             
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Name</label>
+                <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold font-[family:var(--font-serif)]">Full Name / Surname</label>
                 <input 
                   type="text" 
                   value={form.name} 
                   onChange={e => updateField('name', e.target.value)} 
-                  className="w-full p-2 bg-input-background border border-border rounded-sm font-[family:var(--font-body)] text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground" 
+                  className="w-full p-2.5 bg-input-background border border-border rounded-sm font-[family:var(--font-body)] text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground/40" 
                   placeholder="e.g. Peter Johnson" 
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Birth Year</label>
-                  <input 
-                    type="number" 
-                    value={form.yob} 
-                    onChange={e => updateField('yob', e.target.value)} 
-                    className="w-full p-2 bg-input-background border border-border rounded-sm font-[family:var(--font-body)] text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground" 
-                    placeholder="1788" 
-                  />
+                  <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold font-[family:var(--font-serif)]">Birth Year</label>
+                  <div className="relative">
+                    <Calendar className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground/50" />
+                    <input 
+                      type="number" 
+                      value={form.yob} 
+                      onChange={e => updateField('yob', e.target.value)} 
+                      className="w-full pl-9 p-2.5 bg-input-background border border-border rounded-sm font-[family:var(--font-body)] text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground" 
+                      placeholder="1788" 
+                    />
+                  </div>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Complexion</label>
+                  <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold font-[family:var(--font-serif)]">Complexion</label>
                   <select 
                     value={form.complexion} 
                     onChange={e => updateField('complexion', e.target.value)} 
-                    className="w-full p-2 bg-input-background border border-border rounded-sm font-[family:var(--font-body)] text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
+                    className="w-full p-2.5 bg-input-background border border-border rounded-sm font-[family:var(--font-body)] text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%20fill%3D%22none%22%20stroke%3D%22%23465566%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:16px_16px] bg-[right_10px_center] bg-no-repeat"
                   >
-                    <option value="">Any</option>
+                    <option>Any</option>
                     <option value="black">Black</option>
                     <option value="white">White</option>
                     <option value="light">Light</option>
@@ -170,32 +180,32 @@ export function AdvancedSearch() {
           </section>
 
           {/* Section: Voyage */}
-          <section className="flex flex-col gap-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-border/50">
-              <Anchor className="w-4 h-4 text-secondary" />
-              <h3 className="font-[family:var(--font-body)] text-xs uppercase tracking-widest text-muted-foreground font-bold">Vessel & Voyage</h3>
+          <section className="flex flex-col gap-5">
+            <div className="flex items-center gap-2 pb-2 border-b border-secondary/30">
+              <Anchor className="w-4 h-4 text-primary" />
+              <h3 className="font-[family:var(--font-body)] text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold">Vessel & Voyage Specs</h3>
             </div>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Vessel Name</label>
+                <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold font-[family:var(--font-serif)]">Vessel Name</label>
                 <input 
                   type="text" 
                   value={form.vessel} 
                   onChange={e => updateField('vessel', e.target.value)} 
-                  className="w-full p-2 bg-input-background border border-border rounded-sm font-[family:var(--font-body)] text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground" 
+                  className="w-full p-2.5 bg-input-background border border-border rounded-sm font-[family:var(--font-body)] text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground/40" 
                   placeholder="e.g. Ship Jane" 
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Rig</label>
+                <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold font-[family:var(--font-serif)]">Rig Type</label>
                 <select 
                   value={form.rig} 
                   onChange={e => updateField('rig', e.target.value)} 
-                  className="w-full p-2 bg-input-background border border-border rounded-sm font-[family:var(--font-body)] text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
+                  className="w-full p-2.5 bg-input-background border border-border rounded-sm font-[family:var(--font-body)] text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%20fill%3D%22none%22%20stroke%3D%22%23465566%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:16px_16px] bg-[right_10px_center] bg-no-repeat"
                 >
-                  <option value="">Any Rig</option>
+                  <option>Any Rig</option>
                   <option value="ship">Ship</option>
                   <option value="brig">Brig</option>
                   <option value="schooner">Schooner</option>
@@ -204,134 +214,158 @@ export function AdvancedSearch() {
                 </select>
               </div>
 
-
-
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Arrival Port</label>
-                <input 
-                  type="text" 
-                  value={form.portEnded} 
-                  onChange={e => updateField('portEnded', e.target.value)} 
-                  className="w-full p-2 bg-input-background border border-border rounded-sm font-[family:var(--font-body)] text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground" 
-                  placeholder="e.g. Liverpool" 
-                />
+                <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold font-[family:var(--font-serif)]">Arrival Port</label>
+                <div className="relative">
+                  <MapPin className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground/50" />
+                  <input 
+                    type="text" 
+                    value={form.portEnded} 
+                    onChange={e => updateField('portEnded', e.target.value)} 
+                    className="w-full pl-9 p-2.5 bg-input-background border border-border rounded-sm font-[family:var(--font-body)] text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground/40" 
+                    placeholder="e.g. Liverpool" 
+                  />
+                </div>
               </div>
             </div>
           </section>
         </form>
 
-        <div className="p-6 border-t border-border bg-muted/20 flex flex-col gap-3">
+        <div className="p-6 border-t-2 border-primary/10 bg-muted/10 flex flex-col gap-3">
           <button 
             onClick={() => handleSearch()} 
-            className="w-full py-2.5 bg-primary text-background font-[family:var(--font-serif)] rounded-sm hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
-            style={{ fontWeight: 500 }}
+            className="w-full py-3.5 bg-primary text-background font-[family:var(--font-serif)] text-base rounded-sm hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-md font-bold active:scale-[0.98]"
           >
             <Search className="w-4 h-4" /> Apply Filters
           </button>
           <button 
             onClick={clearFilters} 
-            className="w-full py-2 text-primary font-[family:var(--font-body)] text-xs uppercase tracking-widest hover:underline transition-all"
-            style={{ fontWeight: 700 }}
+            className="w-full py-2 text-primary font-[family:var(--font-body)] text-[10px] uppercase tracking-[0.2em] hover:text-secondary transition-all font-bold"
           >
-            Reset All
+            Reset All Parameters
           </button>
         </div>
       </aside>
 
       {/* Main Results Area */}
-      <main className="flex-1 h-full overflow-y-auto custom-scrollbar flex flex-col">
+      <main className="flex-1 h-full overflow-y-auto custom-scrollbar flex flex-col relative">
+        {/* Background Texture */}
+        <div className="absolute inset-0 bg-[#f9f6e7] opacity-50 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')]" />
+
         {/* Mobile Header */}
-        <div className="lg:hidden p-4 border-b border-border bg-card flex items-center justify-between">
+        <div className="lg:hidden p-4 border-b border-border bg-card flex items-center justify-between sticky top-0 z-50 shadow-sm">
           <button 
             onClick={() => setIsSidebarOpen(true)}
-            className="flex items-center gap-2 text-primary font-[family:var(--font-body)] text-xs uppercase tracking-widest font-bold"
+            className="flex items-center gap-2 text-primary font-[family:var(--font-body)] text-[10px] uppercase tracking-[0.2em] font-bold py-2 px-3 bg-secondary/10 rounded-sm border border-secondary/20"
           >
-            <Filter className="w-4 h-4" /> Filters
+            <Filter className="w-3.5 h-3.5" /> Adjust Search
           </button>
-          <span className="font-[family:var(--font-serif)] text-muted-foreground italic text-sm">
-            {results ? `${results.length} found` : 'Searching...'}
+          <span className="font-[family:var(--font-serif)] text-muted-foreground italic text-xs">
+            {results ? `${results.length} results found` : 'Awaiting search...'}
           </span>
         </div>
 
-        <div className="p-8 md:p-12 max-w-6xl mx-auto w-full">
+        <div className="p-8 md:p-16 max-w-5xl mx-auto w-full relative z-10">
+          {/* Breadcrumb-ish */}
+          <div className="mb-8 flex items-center gap-2">
+            <Link to="/" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest font-[family:var(--font-body)]">
+               <ChevronLeft className="w-3.5 h-3.5" /> Return to Map
+            </Link>
+          </div>
+
           {/* Page Header */}
-          <div className="mb-10 pb-6 border-b border-border/60">
-            <h1 className="font-[family:var(--font-display)] text-primary text-4xl md:text-5xl mb-2 tracking-wide" style={{ fontWeight: 700 }}>
-              Advanced Search
+          <div className="mb-12 relative">
+            <h1 className="font-[family:var(--font-display)] text-primary text-5xl md:text-7xl mb-4 tracking-tight font-bold" style={{ lineHeight: 1 }}>
+              Mariner Registry
             </h1>
-            <p className="font-[family:var(--font-serif)] text-muted-foreground text-lg italic">
-              Explore the historical records of the Delaware maritime community.
+            <div className="h-1 w-32 bg-secondary mb-6" />
+            <p className="font-[family:var(--font-serif)] text-muted-foreground text-xl italic max-w-2xl leading-relaxed">
+              Sifting through the archival records of sailors, privateers, and merchant mariners who traversed the Atlantic from Delaware ports.
             </p>
           </div>
 
           {/* Results List */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-8">
             {results === null ? (
-              <div className="bg-card border border-border border-dashed p-16 text-center flex flex-col items-center gap-4">
-                <Search className="w-12 h-12 text-muted/30" />
-                <div className="flex flex-col gap-1">
-                  <p className="font-[family:var(--font-serif)] text-muted-foreground text-xl italic">Ready to search the database.</p>
-                  <p className="font-[family:var(--font-body)] text-sm text-muted-foreground/70">Use the filters on the left to find records.</p>
+              <div className="bg-card border-2 border-border border-dashed p-24 text-center flex flex-col items-center gap-6 shadow-inner">
+                <div className="w-20 h-20 bg-muted/20 rounded-full flex items-center justify-center">
+                  <Search className="w-10 h-10 text-primary/20" />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <p className="font-[family:var(--font-serif)] text-primary text-2xl italic">No Search Parameters Provided</p>
+                  <p className="font-[family:var(--font-body)] text-sm text-muted-foreground max-w-xs mx-auto">
+                    Please use the control panel on the left to begin searching the maritime database.
+                  </p>
                 </div>
               </div>
             ) : results.length === 0 ? (
-              <div className="bg-card border border-border p-16 text-center shadow-sm">
-                <p className="font-[family:var(--font-serif)] text-muted-foreground text-xl italic mb-2">No matches found for your criteria.</p>
+              <div className="bg-card border-2 border-destructive/20 p-24 text-center shadow-xl flex flex-col items-center gap-4">
+                <p className="font-[family:var(--font-serif)] text-destructive text-2xl italic mb-2">The records yield no matches.</p>
+                <p className="font-[family:var(--font-body)] text-muted-foreground text-sm max-w-md mb-4">
+                  Consider broadening your search parameters. Historical records often feature variations in spelling or incomplete data.
+                </p>
                 <button 
                   onClick={clearFilters}
-                  className="text-primary hover:text-secondary font-[family:var(--font-body)] text-xs uppercase tracking-widest font-bold underline underline-offset-4"
+                  className="px-6 py-2 bg-secondary/10 text-primary hover:bg-secondary/20 border border-secondary/30 font-[family:var(--font-body)] text-[10px] uppercase tracking-[0.2em] font-bold transition-all"
                 >
-                  Clear all filters
+                  Clear all search filters
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4">
-                <div className="flex justify-between items-center mb-2 px-2">
-                  <span className="font-[family:var(--font-body)] text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">
-                    Showing {results.length} record{results.length !== 1 ? 's' : ''}
+              <div className="flex flex-col gap-6">
+                <div className="flex justify-between items-center border-b border-border pb-4">
+                  <span className="font-[family:var(--font-body)] text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-bold">
+                    Authenticated Records: {results.length}
                   </span>
                 </div>
                 
-                <div className="flex flex-col gap-px bg-border border border-border overflow-hidden">
+                <div className="grid grid-cols-1 gap-4">
                   {results.map(sailor => (
                     <Link
                       key={sailor.id}
                       to={`/sailor/${sailor.id}`}
-                      className="group bg-card hover:bg-secondary/5 transition-colors p-6 flex flex-col md:flex-row md:items-center justify-between gap-6"
+                      className="group bg-card border border-border hover:border-primary transition-all p-8 flex flex-col md:flex-row md:items-center justify-between gap-8 shadow-sm hover:shadow-xl relative overflow-hidden"
                     >
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-baseline gap-4">
-                          <span className="font-[family:var(--font-display)] text-primary text-2xl group-hover:text-secondary transition-colors" style={{ fontWeight: 700 }}>
-                            {sailor.name}
-                          </span>
-                          <span className="font-[family:var(--font-serif)] text-muted-foreground italic text-sm">
-                            born {sailor.yearOfBirth}
-                          </span>
+                      <div className="absolute left-0 top-0 w-1 h-full bg-secondary scale-y-0 group-hover:scale-y-100 transition-transform origin-top" />
+                      
+                      <div className="flex flex-col gap-3">
+                        <div className="flex flex-col">
+                          <span className="font-[family:var(--font-body)] text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-bold mb-1">Registered Mariner</span>
+                          <div className="flex items-baseline gap-4">
+                            <span className="font-[family:var(--font-display)] text-primary text-3xl group-hover:text-secondary transition-colors font-bold">
+                              {sailor.name}
+                            </span>
+                            <span className="font-[family:var(--font-serif)] text-muted-foreground italic text-base">
+                              b. {sailor.yearOfBirth}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-[family:var(--font-body)] text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1.5 capitalize">
-                            <span className="w-2 h-2 rounded-full bg-secondary/40" />
-                            {sailor.description.complexion} complexion
+                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 font-[family:var(--font-body)] text-xs text-muted-foreground uppercase tracking-widest font-bold">
+                          <span className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-secondary" />
+                            {sailor.description.complexion} Complexion
                           </span>
-                          <span className="w-px h-3 bg-border hidden md:inline-block"></span>
-                          <span>{sailor.description.height}</span>
-                          <span className="w-px h-3 bg-border hidden md:inline-block"></span>
-                          <span>{sailor.description.hairColor} hair</span>
+                          <span className="flex items-center gap-2 italic normal-case tracking-normal font-normal text-sm font-[family:var(--font-serif)]">
+                            {sailor.description.height} Tall
+                          </span>
+                          <span className="flex items-center gap-2">
+                             {sailor.hometown}
+                          </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-6 border-t md:border-t-0 pt-4 md:pt-0 border-border/50">
-                        <div className="flex flex-col items-end">
-                          <span className="font-[family:var(--font-serif)] text-lg text-primary" style={{ fontWeight: 700 }}>
+                      <div className="flex items-center gap-8 border-t md:border-t-0 pt-6 md:pt-0 border-border/50">
+                        <div className="flex flex-col items-center">
+                          <span className="font-[family:var(--font-serif)] text-3xl text-primary font-bold">
                             {sailor.voyages.length}
                           </span>
-                          <span className="font-[family:var(--font-body)] text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
+                          <span className="font-[family:var(--font-body)] text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-bold">
                             Voyages
                           </span>
                         </div>
-                        <div className="h-10 w-px bg-border hidden md:block" />
-                        <div className="flex items-center gap-2 font-[family:var(--font-body)] text-[10px] text-primary uppercase tracking-widest font-bold group-hover:gap-3 transition-all">
-                          View Record <ArrowRight className="w-4 h-4" />
+                        <div className="h-16 w-px bg-border hidden md:block" />
+                        <div className="flex items-center gap-3 font-[family:var(--font-body)] text-[10px] text-primary uppercase tracking-[0.2em] font-bold group-hover:gap-5 transition-all">
+                          View Profile <ArrowRight className="w-5 h-5" />
                         </div>
                       </div>
                     </Link>
@@ -340,19 +374,31 @@ export function AdvancedSearch() {
               </div>
             )}
           </div>
+          
+          {/* Footer info */}
+          <div className="mt-24 pt-12 border-t border-border flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
+            <div className="flex flex-col gap-2">
+               <p className="font-[family:var(--font-serif)] text-muted-foreground text-sm italic">Documentation provided by maritime customs house records.</p>
+               <p className="font-[family:var(--font-body)] text-[10px] text-muted-foreground uppercase tracking-widest font-bold">© 2026 Delaware Maritime Archives</p>
+            </div>
+            <Link to="/" className="p-4 border-2 border-primary/10 hover:border-primary/40 transition-all rounded-sm group">
+               <span className="font-[family:var(--font-serif)] text-primary font-bold group-hover:text-secondary transition-colors">Return to Visual Map Chart</span>
+            </Link>
+          </div>
         </div>
       </main>
       
       <style dangerouslySetInnerHTML={{ __html: `
         .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
+          width: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
+          background: #f1f1f1;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
           background: var(--brand-gold-light, #ead596);
-          border-radius: 10px;
+          border-radius: 4px;
+          border: 2px solid #f1f1f1;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: var(--brand-gold, #cba62a);
@@ -361,3 +407,4 @@ export function AdvancedSearch() {
     </div>
   );
 }
+

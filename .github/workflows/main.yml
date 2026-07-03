@@ -1,0 +1,12 @@
+steps:
+  # ... (other steps like checkout code and setting up Node) ...
+
+  - name: Set up Figma NPM Registry
+    run: |
+      echo "//registry.figma.com/npm/c529fc08-0e8c-4fb6-83aa-7d52d710f960/registry/:_authToken=${{ secrets.FIGMA_NPM_TOKEN }}" > .npmrc
+      echo "@make-kits:registry=https://registry.figma.com/npm/c529fc08-0e8c-4fb6-83aa-7d52d710f960/registry/" >> .npmrc
+
+  - name: Install dependencies
+    run: pnpm install
+
+  # ... (the rest of your build commands) ...
